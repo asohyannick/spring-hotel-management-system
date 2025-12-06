@@ -1,0 +1,98 @@
+🏨 Hotel Management System — Spring Boot & PostgreSQL
+
+Welcome to the Hotel Management System RESTful API — a powerful, scalable, and secure backend solution built using Java, Spring Boot, and PostgreSQL.
+This system provides a complete suite of backend services for managing hotel operations, reservations, room availability, billing, guest profiles, authentication, and more.
+
+👨‍💻 Developer Profile
+
+👋 Author: Asoh Yannick
+💼 Role: Java Backend Developer
+🧠 Expertise Areas:
+
+Core Java • Spring Boot • Spring Data JPA
+
+Spring Security • JWT (Json Web Token)
+
+PostgreSQL • Docker • REST API Architecture
+
+Microservices • Clean Architecture • CI/CD Pipelines
+
+“Crafting secure, scalable, and high-performance backend systems that solve real-world problems.”
+
+🏨 Project Overview
+
+This Hotel Management System follows modern REST API best practices, leveraging Spring Boot for backend logic and PostgreSQL for robust relational data handling.
+
+🌟 Key Business Features
+Status	Feature
+🟩 Secure Authentication & Authorization (JWT + Spring Security)
+🟩 Guest Registration & Customer Profile Management
+🟩 Room Types, Room Management & Availability Tracking
+🟩 Reservation & Booking Workflow
+🟩 Billing, Payment Records & Invoices
+🟩 Check-In / Check-Out System
+🟩 Housekeeping & Room Status Updates
+🟩 Staff Management & Role-Based Access
+🟩 Reporting & Occupancy Analytics
+
+🟩 Each checked feature indicates a completed and tested module.
+
+⚙️ Tech Stack
+Layer	Technology
+Backend Framework	Spring Boot
+Database	PostgreSQL
+ORM Layer	Spring Data JPA / Hibernate
+Security	Spring Security + JWT
+Containerization	Docker / Docker Compose
+Build Tool	Maven
+Testing	JUnit • Mockito
+Documentation	Swagger / OpenAPI
+📘 API Endpoint Summary
+Category	Description	Example Endpoint
+🟩 Auth	Register, Login, JWT Refresh	/api/v1/auth/login
+🟩 Guests	Manage guest profiles & history	/api/v1/guests/{id}
+🟩 Rooms	CRUD for rooms & room types	/api/v1/rooms
+🟩 Availability	Room search & availability check	/api/v1/rooms/available
+🟩 Reservations	Book, update, cancel reservations	/api/v1/reservations
+🟩 Check-In/Check-Out	Full workflow management	/api/v1/hotel/checkin
+🟩 Billing	Create invoices & payments	/api/v1/billing/{reservationId}
+🟩 Staff	Manage hotel employees & roles	/api/v1/staff
+🟩 Analytics	Occupancy, revenue & booking stats	/api/v1/analytics/occupancy
+🐳 Running the Project with Docker
+# Clone the repository
+git clone https://github.com/asohyannick/hotel-management-system
+cd hotel-management-system
+
+# Build & run with Docker
+docker-compose up --build
+
+🧩 Contribution Guide
+
+Contributions are welcome! If you’d like to support this project:
+
+Fork the repository
+
+Create a feature branch
+
+Write clean, well-tested code
+
+Submit a Pull Request (PR)
+
+💡 Let’s improve this system together — collaboration drives innovation.
+
+📫 Contact
+
+Email: asohyannick.dev@gmail.com
+
+GitHub: https://github.com/asohyannick
+
+LinkedIn: https://linkedin.com/in/asohyannick
+
+🟩 Project Status
+
+✔ Core backend modules implemented
+✔ Secure authentication & data validation complete
+✔ Continuous enhancements in progress
+🚀 Open for community contributions
+
+© 2025 Asoh Yannick — Java Backend Developer
