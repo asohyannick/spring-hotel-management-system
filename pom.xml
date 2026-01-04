@@ -12,7 +12,7 @@
 	<artifactId>hostelCare</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>hostelCare</name>
-	<description>Backend Web services or REST API andpoints for a hotel management system</description>
+	<description>Backend Web services or REST API endpoints for a hotel management system</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -151,5 +151,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
