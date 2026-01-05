@@ -27,6 +27,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
     List<Booking> findByCheckInDate(LocalDateTime checkInDate);
 
+
     List<Booking> findByCheckOutDate(LocalDateTime checkOutDate);
 
     List<Booking> findByCheckInDateBetween(LocalDateTime start, LocalDateTime end);

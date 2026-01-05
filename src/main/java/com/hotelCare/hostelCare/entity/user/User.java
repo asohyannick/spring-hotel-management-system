@@ -1,5 +1,6 @@
 package com.hotelCare.hostelCare.entity.user;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hotelCare.hostelCare.enums.AccountStatus;
 import com.hotelCare.hostelCare.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,23 +17,26 @@ import java.util.UUID;
         }
 )
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @EqualsAndHashCode.Include
     @Column(updatable = false, nullable = false)
     private UUID id;
 
+    @JsonIgnore
     @Column( nullable = false, length = 50)
     private String firstName;
 
+    @JsonIgnore
     @Column( nullable = false, length = 50)
     private String lastName;
 
+    @JsonIgnore
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
@@ -40,18 +44,26 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @JsonIgnore
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserRole role = UserRole.CUSTOMER;
 
+    @JsonIgnore
     @Column(nullable = false)
-    private boolean blocked = false;
+    private Boolean isAccountBlocked = false;
 
+    @JsonIgnore
     @Column(nullable = false)
-    private boolean confirmed = false;
+    private Boolean isAccountConfirmed = false;
 
+    @JsonIgnore
     @Column(nullable = false)
-    private boolean active = false;
+    private Boolean isAccountActive = false;
+
+    @JsonIgnore
+    @Column(nullable = false)
+    private Boolean isAccountVerified = false;
 
     @JsonIgnore
     @Column
@@ -63,11 +75,28 @@ public class User {
 
     @JsonIgnore
     @Column
-    private String otpCode;
+    private String twoFactorCode;
+
+    @JsonIgnore
+    @Column
+    private LocalDateTime twoFactorExpiryTime;
+
+    @JsonIgnore
+    @Column
+    private Integer twoFactorAttemptsLeft = 0;
+
+    @JsonIgnore
+    @Column
+    private Integer failedLoginAttempts = 0;
 
     @JsonIgnore
     @Column
     private LocalDateTime otpExpiresAt;
+
+    @JsonIgnore
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountStatus status = AccountStatus.PENDING;
 
     @JsonIgnore
     @Column
