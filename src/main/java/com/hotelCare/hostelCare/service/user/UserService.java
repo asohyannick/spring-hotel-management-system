@@ -389,4 +389,8 @@ public class UserService {
         return authMapper.toUserResponseDto(user);
     }
 
+    public long countTotalUsers() {
+        return userRepository.count();
+    }
+
 }

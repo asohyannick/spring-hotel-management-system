@@ -291,6 +291,23 @@ public class AuthController {
         );
     }
 
+    @Operation(
+            summary = "Count total users",
+            description = "Returns the total number of users in the system"
+    )
+    @GetMapping("/count-users")
+    public ResponseEntity<CustomResponseMessage<Long>> countTotalUsers() {
+
+        long totalUsers = userService.countTotalUsers();
+
+        return ResponseEntity.ok(
+                new CustomResponseMessage<>(
+                        "Total users fetched successfully",
+                        HttpStatus.OK.value(),
+                        totalUsers
+                )
+        );
+    }
 
 }
 
