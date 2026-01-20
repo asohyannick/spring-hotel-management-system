@@ -24,6 +24,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
     private final JWTTokenGenerationLogic jwtTokenGenerationLogic;
 
+
     public JWTAuthenticationFilter(JWTTokenGenerationLogic jwtTokenGenerationLogic) {
         this.jwtTokenGenerationLogic = jwtTokenGenerationLogic;
     }
@@ -35,66 +36,58 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // If authentication already exists, skip JWT processing
-        if (SecurityContextHolder.getContext().getAuthentication() != null) {
-            filterChain.doFilter(request, response);
-            return;
+        String token = null;
+
+        // Extract JWT from "accessToken" cookie
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            Optional<Cookie> jwtCookie =
+                    Arrays.stream(cookies)
+                            .filter(c -> "accessToken".equals(c.getName()))
+                            .findFirst();
+
+            if (jwtCookie.isPresent()) {
+                token = jwtCookie.get().getValue();
+            }
         }
 
-        extractTokenFromCookies(request)
-                .ifPresent(token -> authenticateUser(token, request));
+        if (token != null) {
+            try {
+                Claims claims = jwtTokenGenerationLogic.validateToken(token);
+                String username = claims.getSubject();
+                String roleStr = claims.get("role", String.class); // e.g. "ADMIN", "DEVOPS"
+                System.out.println("Cookies: " + Arrays.toString(request.getCookies()));
+                System.out.println("Token found? " + (token != null));
+                System.out.println("Cookies: " + Arrays.toString(request.getCookies()));
+                System.out.println("Token found? " + (token != null));
+
+
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                    UserRole userRole;
+                    try {
+                        userRole = UserRole.valueOf(roleStr);
+                    } catch (IllegalArgumentException e) {
+                        userRole = UserRole.CUSTOMER;
+                    }
+                    String authority = "ROLE_" + userRole.name();
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    username,
+                                    null,
+                                    Collections.singletonList(new SimpleGrantedAuthority(authority))
+                            );
+
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    System.out.println("Username is null or context already has authentication");
+                }
+            } catch (Exception e) {
+                System.out.println("Invalid JWT: " + e.getMessage());
+            }
+        }
 
         filterChain.doFilter(request, response);
-    }
-
-    /**
-     * Extracts JWT from cookies.
-     */
-    private Optional<String> extractTokenFromCookies(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return Optional.empty();
-        }
-
-        return Arrays.stream(cookies)
-                .filter(cookie -> ACCESS_TOKEN_COOKIE.equals(cookie.getName()))
-                .map(Cookie::getValue)
-                .findFirst();
-    }
-
-    /**
-     * Authenticates the user using JWT.
-     */
-    private void authenticateUser(String token, HttpServletRequest request) {
-        try {
-            Claims claims = jwtTokenGenerationLogic.validateToken(token);
-
-            String username = claims.getSubject();
-            String roleValue = claims.get(ROLE_CLAIM, String.class);
-
-            if (username == null || roleValue == null) {
-                return;
-            }
-
-            UserRole userRole = UserRole.valueOf(roleValue);
-            String authority = "ROLE_" + userRole.name();
-
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            username,
-                            null,
-                            Collections.singletonList(new SimpleGrantedAuthority(authority))
-                    );
-
-            authentication.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
-            );
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        } catch (Exception ex) {
-            logger.warn("JWT token validation failed: {}");
-            SecurityContextHolder.clearContext();
-        }
     }
 }

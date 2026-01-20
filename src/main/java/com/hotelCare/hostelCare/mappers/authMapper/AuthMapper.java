@@ -9,15 +9,12 @@ import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(
         componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_DEFAULT
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 public interface AuthMapper {
 
-    /* =========================
-       Map AuthRequestDto -> User
-       ========================= */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "role", constant = "CUSTOMER") // default role
+    @Mapping(target = "role", ignore = true)
     @Mapping(target = "isAccountBlocked", constant = "false")
     @Mapping(target = "isAccountConfirmed", constant = "false")
     @Mapping(target = "isAccountActive", constant = "false")
@@ -35,9 +32,6 @@ public interface AuthMapper {
     @Mapping(target = "updatedAt", ignore = true)
     User toUser(AuthRequestDto dto);
 
-    /* =========================
-       Map User -> UserResponseDto
-       ========================= */
     @Mapping(target = "role", source = "role", qualifiedByName = "roleToString")
     @Mapping(target = "accountBlocked", source = "isAccountBlocked")
     @Mapping(target = "accountConfirmed", source = "isAccountConfirmed")
@@ -45,9 +39,6 @@ public interface AuthMapper {
     @Mapping(target = "accountVerified", source = "isAccountVerified")
     UserResponseDto toUserResponseDto(User user);
 
-    /* =========================
-       Helper method to map UserRole enum to string
-       ========================= */
     @Named("roleToString")
     default String mapRoleToString(UserRole role) {
         return role != null ? role.name() : null;

@@ -2,8 +2,10 @@ package com.hotelCare.hostelCare.dto.user;
 import com.hotelCare.hostelCare.enums.AccountStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 @Schema(description = "DTO representing a user response")
 public record UserResponseDto(
+        UUID id,
         @Schema(description = "User's first name", example = "John")
         String firstName,
 

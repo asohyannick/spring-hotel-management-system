@@ -1,5 +1,10 @@
 server:
-  port: ${API_PORT}
+    servlet:
+      encoding:
+        charset: UTF-8
+        enabled: true
+        force: true
+        port: ${API_PORT}
 
 spring:
   application:
@@ -49,6 +54,16 @@ frontend:
 
 api:
   version: ${API_VERSION}
+
+admin:
+  email: ${HOSTELCARE_ADMIN_EMAIL}
+  password: ${HOSTELCARE_ADMIN_PASSWORD}
+  app:
+    seed-admin: false
+    storage:
+      local:
+        base-path: ./uploads
+        base-url: ${BASE_URL}
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}

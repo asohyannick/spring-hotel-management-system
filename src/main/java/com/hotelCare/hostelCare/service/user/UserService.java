@@ -1,27 +1,29 @@
 package com.hotelCare.hostelCare.service.user;
 import com.hotelCare.hostelCare.config.JWTConfig.JWTTokenGenerationLogic;
 import com.hotelCare.hostelCare.config.firebaseConfig.FirebaseConfig;
-import com.hotelCare.hostelCare.dto.user.AuthRequestDto;
-import com.hotelCare.hostelCare.dto.user.LoginRequestDto;
-import com.hotelCare.hostelCare.dto.user.UserResponseDto;
-import com.hotelCare.hostelCare.dto.user.VerifyOTP;
+import com.hotelCare.hostelCare.dto.user.*;
 import com.hotelCare.hostelCare.entity.user.User;
+import com.hotelCare.hostelCare.enums.AccountStatus;
 import com.hotelCare.hostelCare.enums.UserRole;
 import com.hotelCare.hostelCare.exception.BadRequestException;
 import com.hotelCare.hostelCare.exception.NotFoundException;
 import com.hotelCare.hostelCare.mappers.authMapper.AuthMapper;
 import com.hotelCare.hostelCare.repository.userRepository.UserRepository;
-import com.hotelCare.hostelCare.utils.AssignRole;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
 @Service
 @Transactional
 public class UserService {
@@ -82,7 +84,7 @@ public class UserService {
 
             <!-- Content -->
             <div style="padding:24px;color:#1f2937;font-size:14px;line-height:1.6;">
-              <p>Dear Mercado User,</p>
+              <p>Dear customer,</p>
 
               <p>Thank you for securing your account.</p>
 
@@ -164,33 +166,52 @@ public class UserService {
         }
     }
 
+    private void activateUser(User user) {
+        user.setTwoFactorCode(null);
+        user.setTwoFactorExpiryTime(null);
+        user.setTwoFactorAttemptsLeft(0);
+        user.setIsAccountActive(true);
+        user.setIsAccountVerified(true);
+        user.setIsAccountBlocked(false);
+        user.setIsAccountConfirmed(true);
+        user.setStatus(AccountStatus.VERIFIED);
+        userRepository.save(user);
+    }
+
+    private void handleFailedLogin(User user) {
+        int attempts = user.getFailedLoginAttempts() + 1;
+        user.setFailedLoginAttempts(attempts);
+
+        if (attempts >= 5) {
+            user.setIsAccountBlocked(true);
+            user.setStatus(AccountStatus.SUSPENDED);
+        }
+
+        userRepository.save(user);
+    }
+
+
 
     public UserResponseDto createAccount(AuthRequestDto authRequestDto, HttpServletResponse response) {
 
-        if (userRepository.existsByEmail(authRequestDto.email())) {
+        if (userRepository.existsByEmail(authRequestDto.email().trim().toLowerCase())) {
             throw new BadRequestException("Email already exists");
         }
 
         User newUser = authMapper.toUser(authRequestDto);
 
-
-        UserRole assignedRole = AssignRole.assignRole(authRequestDto.email());
-
-        if (assignedRole == UserRole.ADMIN && !userRepository.findByRole(UserRole.ADMIN).isEmpty()) {
-            throw new BadRequestException("An admin account already exists");
-        }
-        newUser.setRole(assignedRole);
+        newUser.setRole(UserRole.CUSTOMER);
 
         newUser.setPassword(passwordEncoder.encode(authRequestDto.password()));
 
         User savedUser = userRepository.save(newUser);
 
         String otpCode = generate2FACode(savedUser);
-
         send2FACodeEmail(savedUser.getEmail(), otpCode);
 
         return authMapper.toUserResponseDto(savedUser);
     }
+
 
     public UserResponseDto login(LoginRequestDto loginRequestDto, HttpServletResponse response) {
 
@@ -211,7 +232,7 @@ public class UserService {
             throw new BadRequestException("Account requires OTP verification. Please verify your email.");
         }
 
-        String accessToken = jwtTokenGenerationLogic.generateAccessToken(user.getEmail(), user.getRole());
+        String accessToken = jwtTokenGenerationLogic.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtTokenGenerationLogic.generateRefreshToken(user.getEmail());
 
         user.setAccessToken(accessToken);
@@ -241,9 +262,32 @@ public class UserService {
         return authMapper.toUserResponseDto(user);
     }
 
+    public LoginResult superAdminLogin(AdminRequestDto dto) {
+
+        User admin = userRepository.findByEmail(dto.email().trim().toLowerCase())
+                .orElseThrow(() -> new NotFoundException("Admin not found"));
+
+        if (!passwordEncoder.matches(dto.password(), admin.getPassword())) {
+            throw new BadRequestException("Invalid credentials");
+        }
+
+        if (Boolean.TRUE.equals(admin.getIsAccountBlocked())) {
+            throw new BadRequestException("Account blocked. Contact support.");
+        }
+
+        admin.setRole(UserRole.SUPER_ADMIN);
+
+        String accessToken = jwtTokenGenerationLogic.generateAccessToken(admin.getEmail(), admin.getRole().name());
+        String refreshToken = jwtTokenGenerationLogic.generateRefreshToken(admin.getEmail());
+
+        admin.setRefreshToken(refreshToken);
+        userRepository.save(admin);
+
+        return new LoginResult(authMapper.toUserResponseDto(admin), accessToken, refreshToken);
+    }
+
     public UserResponseDto verifyOTP(VerifyOTP verifyOTP, HttpServletResponse response) {
-        String email = verifyOTP.twoFactorCode();
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByTwoFactorCode(verifyOTP.twoFactorCode())
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         if (user.getTwoFactorCode() == null ||
@@ -253,17 +297,10 @@ public class UserService {
             throw new BadRequestException("Invalid or expired OTP code");
         }
 
-        // ✅ Activate account
-        user.setTwoFactorCode(null);
-        user.setTwoFactorExpiryTime(null);
-        user.setTwoFactorAttemptsLeft(0);
-        user.setIsAccountActive(true);
-        user.setIsAccountVerified(true);
-        user.setIsAccountBlocked(false);
-        user.setIsAccountConfirmed(true);
+        activateUser(user);
 
         // 🔑 Generate JWT tokens after verification
-        String accessToken = jwtTokenGenerationLogic.generateAccessToken(user.getEmail(), user.getRole());
+        String accessToken = jwtTokenGenerationLogic.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtTokenGenerationLogic.generateRefreshToken(user.getEmail());
         user.setAccessToken(accessToken);
         user.setRefreshToken(refreshToken);
@@ -313,5 +350,23 @@ public class UserService {
         response.addHeader("Set-Cookie", refreshCookie.toString());
     }
 
+    public List<UserResponseDto> getAllUsers() {
+        return  userRepository.findAll()
+                .stream()
+                .map(authMapper::toUserResponseDto)
+                .toList();
+    }
+
+    public  UserResponseDto getUserById(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found!"));
+        return  authMapper.toUserResponseDto(user);
+    }
+
+    public void deleteUser(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("User not found!")
+        );
+        userRepository.delete(user);
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.hotelCare.hostelCare.entity.user;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hotelCare.hostelCare.enums.AccountStatus;
 import com.hotelCare.hostelCare.enums.UserRole;
 import jakarta.persistence.*;
@@ -10,37 +11,32 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 @Entity
-@Table(
-        name = "users",
-        indexes = {
-                @Index(name = "idx_users_email", columnList = "email")
-        }
-)
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @EqualsAndHashCode.Include
     @Column(updatable = false, nullable = false)
     private UUID id;
 
     @JsonIgnore
-    @Column( nullable = false, length = 50)
+    @Column(nullable = false, length = 50)
     private String firstName;
 
     @JsonIgnore
-    @Column( nullable = false, length = 50)
+    @Column(nullable = false, length = 50)
     private String lastName;
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String password;
 
@@ -49,17 +45,23 @@ public class User {
     @Column(nullable = false, length = 20)
     private UserRole role = UserRole.CUSTOMER;
 
+
     @JsonIgnore
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    private AccountStatus status = AccountStatus.PENDING;
+
+    @JsonIgnore
+    @Column(name = "blocked", nullable = false)
     private Boolean isAccountBlocked = false;
+
+    @JsonIgnore
+    @Column(name = "active", nullable = false)
+    private Boolean isAccountActive = false;
 
     @JsonIgnore
     @Column(nullable = false)
     private Boolean isAccountConfirmed = false;
-
-    @JsonIgnore
-    @Column(nullable = false)
-    private Boolean isAccountActive = false;
 
     @JsonIgnore
     @Column(nullable = false)
@@ -81,12 +83,12 @@ public class User {
     @Column
     private LocalDateTime twoFactorExpiryTime;
 
-    @JsonIgnore
-    @Column
+    @Builder.Default
+    @Column(nullable = false)
     private Integer twoFactorAttemptsLeft = 0;
 
-    @JsonIgnore
-    @Column
+    @Builder.Default
+    @Column(nullable = false)
     private Integer failedLoginAttempts = 0;
 
     @JsonIgnore
@@ -94,16 +96,11 @@ public class User {
     private LocalDateTime otpExpiresAt;
 
     @JsonIgnore
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AccountStatus status = AccountStatus.PENDING;
-
-    @JsonIgnore
-    @Column
+    @Column(length = 1000)
     private String accessToken;
 
     @JsonIgnore
-    @Column
+    @Column(length = 1000)
     private String refreshToken;
 
     @CreationTimestamp
@@ -113,5 +110,18 @@ public class User {
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (isAccountBlocked == null) isAccountBlocked = false;
+        if (isAccountActive == null) isAccountActive = false;
+        if (isAccountConfirmed == null) isAccountConfirmed = false;
+        if (isAccountVerified == null) isAccountVerified = false;
+        if (failedLoginAttempts == null) failedLoginAttempts = 0;
+        if (twoFactorAttemptsLeft == null) twoFactorAttemptsLeft = 0;
+        if (role == null) role = UserRole.CUSTOMER;
+        if (status == null) status = AccountStatus.PENDING;
+    }
 }
+
 
