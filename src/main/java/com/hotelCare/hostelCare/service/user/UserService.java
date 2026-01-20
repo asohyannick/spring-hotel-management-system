@@ -369,4 +369,24 @@ public class UserService {
         userRepository.delete(user);
     }
 
+    public UserResponseDto blockCustomer(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found!"));
+        if (Boolean.TRUE.equals(user.getIsAccountBlocked())){
+            throw new BadRequestException("User account is already blocked!");
+        }
+        user.setIsAccountBlocked(true);
+        User saved = userRepository.save(user);
+        return  authMapper.toUserResponseDto(saved);
+    }
+
+    public UserResponseDto unBlockCustomer(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found!"));
+        if (!Boolean.TRUE.equals(user.getIsAccountBlocked())) {
+            throw  new BadRequestException("User account is not blocked");
+        }
+        user.setIsAccountBlocked(false);
+        User saved = userRepository.save(user);
+        return authMapper.toUserResponseDto(user);
+    }
+
 }

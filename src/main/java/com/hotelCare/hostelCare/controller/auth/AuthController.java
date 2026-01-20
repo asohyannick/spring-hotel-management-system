@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -244,6 +245,48 @@ public class AuthController {
                         "User deleted successfully",
                         HttpStatus.OK.value(),
                         null
+                )
+        );
+    }
+
+    @Operation(summary = "Block a customer", description = "Blocks a customer account by userId")
+    @PatchMapping("/block-user/{userId}")
+    public ResponseEntity<CustomResponseMessage<UserResponseDto>> blockUser(
+            @Parameter(
+                    description = "UUID of the user to block",
+                    required = true,
+                    example = "550e8400-e29b-41d4-a716-446655440000"
+            )
+            @PathVariable @NotNull UUID userId
+    ) {
+        UserResponseDto user = userService.blockCustomer(userId);
+
+        return ResponseEntity.ok(
+                new CustomResponseMessage<>(
+                        "User blocked successfully",
+                        HttpStatus.OK.value(),
+                        user
+                )
+        );
+    }
+
+    @Operation(summary = "Unblock a customer", description = "Unblocks a customer account by userId")
+    @PatchMapping("/unblock-user/{userId}")
+    public ResponseEntity<CustomResponseMessage<UserResponseDto>> unblockUser(
+            @Parameter(
+                    description = "UUID of the user to unblock",
+                    required = true,
+                    example = "550e8400-e29b-41d4-a716-446655440000"
+            )
+            @PathVariable @NotNull UUID userId
+    ) {
+        UserResponseDto user = userService.unBlockCustomer(userId);
+
+        return ResponseEntity.ok(
+                new CustomResponseMessage<>(
+                        "User unblocked successfully",
+                        HttpStatus.OK.value(),
+                        user
                 )
         );
     }

@@ -106,7 +106,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 apiBasePath + "/auth/all-users",
                                 apiBasePath + "/auth/fetch-user/*",
-                                apiBasePath + "/auth/delete-user/*"
+                                apiBasePath + "/auth/delete-user/*",
+                                apiBasePath + "/auth/block-user/*",
+                                apiBasePath + "/auth/unblock-user/*"
                         ).hasAnyRole(UserRole.SUPER_ADMIN.name(), UserRole.ADMIN.name())
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().denyAll()
