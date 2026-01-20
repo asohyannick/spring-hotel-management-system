@@ -5,7 +5,6 @@ import com.hotelCare.hostelCare.enums.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,17 +13,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
     Optional<User> findByTwoFactorCode(String twoFactorCode);
-
     boolean existsByEmail(String email);
-
-    List<User> findByRole(UserRole role);
-
-    List<User> findByIsAccountActiveTrue();
-
-    List<User> findByIsAccountBlockedTrue();
-
-    List<User> findByIsAccountConfirmedFalse();
-
     @Query("""
         SELECT u FROM User u
         WHERE (:role IS NULL OR u.role = :role)
@@ -40,12 +29,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             @Param("blocked") Boolean blocked,
             @Param("email") String email
     );
-
     Optional<User> findByMagicLinkToken(String token);
-
-    long countByRole(UserRole role);
-
-    long countByIsAccountActiveTrue();
-
-    long countByIsAccountBlockedTrue();
 }

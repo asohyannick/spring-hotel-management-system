@@ -327,6 +327,90 @@ public class AuthController {
         );
     }
 
+    @Operation(
+            summary = "Forgot password",
+            description = "Sends a password reset verification code (OTP) to the user's email address."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Password reset code sent successfully",
+                    content = @Content(schema = @Schema(implementation = ForgotPasswordResponseDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request (e.g., email sending failure, invalid state)",
+                    content = @Content(schema = @Schema())
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found",
+                    content = @Content(schema = @Schema())
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Validation error",
+                    content = @Content(schema = @Schema())
+            )
+    })
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ForgotPasswordResponseDto> forgotPassword(
+            @Valid @RequestBody ForgotPasswordDto forgotPasswordDto
+    ) {
+        String email = userService.forgotPassword(forgotPasswordDto);
+
+        ForgotPasswordResponseDto response = new ForgotPasswordResponseDto(
+                email,
+                "Password reset code has been sent to your email address"
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Reset password",
+            description = "Resets the user's password using a reset token stored in a cookie."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Password reset successfully",
+                    content = @Content(schema = @Schema(implementation = ResetPasswordResponseDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request (invalid token, expired token, password mismatch, etc.)",
+                    content = @Content(schema = @Schema())
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found",
+                    content = @Content(schema = @Schema())
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Validation error",
+                    content = @Content(schema = @Schema())
+            )
+    })
+    @PostMapping("/{userId}/reset-password")
+    public ResponseEntity<ResetPasswordResponseDto> resetPassword(
+            @Parameter(description = "User ID", required = true, example = "b3b1a9d8-7b6a-4f86-a6d0-3d3f7c3c1b6e")
+            @PathVariable UUID userId,
+
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "New password payload",
+                    content = @Content(schema = @Schema(implementation = ResetPasswordDto.class))
+            )
+            @Valid @RequestBody ResetPasswordDto resetPasswordDto
+
+    ) {
+        userService.resetPassword(resetPasswordDto, userId);
+
+        return ResponseEntity.ok(new ResetPasswordResponseDto("Password reset successfully"));
+    }
+
 }
 
 

@@ -74,7 +74,7 @@ public class UserService {
             <div style="padding:22px 24px;
                         background:linear-gradient(135deg,#0f172a,#1d4ed8);
                         color:#ffffff;">
-              <h2 style="margin:0;font-size:18px;">Mercado Security</h2>
+              <h2 style="margin:0;font-size:18px;">HostelCare Security Team</h2>
               <p style="margin:6px 0 0;font-size:13px;opacity:0.9;">
                 Two-Factor Authentication (2FA)
               </p>
@@ -413,5 +413,112 @@ public class UserService {
     public long countTotalUsers() {
         return userRepository.count();
     }
+
+    public String forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+        User user = userRepository.findByEmail(forgotPasswordDto.email()).orElseThrow(
+                () -> new NotFoundException("User not found.")
+        );
+        String resetCode = generate2FACode(user);
+        user.setTwoFactorCode(resetCode);
+        user.setTwoFactorExpiryTime(LocalDateTime.now().plusMinutes(15));
+        userRepository.save(user);
+        String html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Password Reset</title>
+        </head>
+        <body style="margin:0;padding:0;background:#f6f9fc;font-family:Arial,Helvetica,sans-serif;">
+          <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background:#f6f9fc;padding:24px 0;">
+            <tr>
+              <td align="center">
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0"
+                       style="width:600px;max-width:92%%;background:#ffffff;border-radius:12px;overflow:hidden;
+                              box-shadow:0 6px 18px rgba(0,0,0,0.08);">
+                  <tr>
+                    <td style="background:#0b5ed7;padding:18px 24px;color:#ffffff;">
+                      <h2 style="margin:0;font-size:18px;line-height:1.4;">Password Reset Verification</h2>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:24px;color:#1f2937;">
+                      <p style="margin:0 0 14px;font-size:14px;line-height:1.6;">
+                        Hi there, 👋
+                      </p>
+
+                      <p style="margin:0 0 16px;font-size:14px;line-height:1.6;">
+                        We received a request to reset your password. Use the verification code below to continue:
+                      </p>
+
+                      <div style="text-align:center;margin:22px 0;">
+                        <span style="display:inline-block;background:#f3f4f6;border:1px solid #e5e7eb;
+                                     padding:14px 20px;border-radius:10px;font-size:28px;letter-spacing:6px;
+                                     font-weight:700;color:#111827;">
+                          %s
+                        </span>
+                      </div>
+
+                      <p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:#374151;">
+                        ⏳ This code will expire in <strong>15 minutes</strong>.
+                      </p>
+
+                      <p style="margin:0;font-size:13px;line-height:1.6;color:#6b7280;">
+                        If you didn’t request this, you can safely ignore this email.
+                      </p>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:16px 24px;background:#f9fafb;border-top:1px solid #e5e7eb;color:#6b7280;">
+                      <p style="margin:0;font-size:12px;line-height:1.5;">
+                        © %d Your App. All rights reserved.
+                      </p>
+                    </td>
+                  </tr>
+
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+        """.formatted(resetCode, java.time.Year.now().getValue());
+        try {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
+
+            helper.setTo(forgotPasswordDto.email());
+            helper.setSubject("Password Reset Verification Code");
+            helper.setText(html, true);
+
+            javaMailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            throw new BadRequestException("Failed to send password reset email", e);
+        }
+        return user.getEmail();
+    }
+
+    public void resetPassword(ResetPasswordDto resetPasswordDto, UUID userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Invalid or expired reset token"));
+
+        if (!resetPasswordDto.password().equals(resetPasswordDto.confirmPassword())) {
+            throw new BadRequestException("Password and confirm password do not match");
+        }
+
+        if (!user.getId().equals(userId)) {
+            throw new BadRequestException("Reset token does not match this user");
+        }
+        user.setPassword(passwordEncoder.encode(resetPasswordDto.password()));
+        user.setTwoFactorCode(null);
+        user.setTwoFactorExpiryTime(null);
+
+        userRepository.save(user);
+    }
+
 
 }
