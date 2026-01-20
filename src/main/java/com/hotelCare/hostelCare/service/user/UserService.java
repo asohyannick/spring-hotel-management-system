@@ -11,11 +11,9 @@ import com.hotelCare.hostelCare.mappers.authMapper.AuthMapper;
 import com.hotelCare.hostelCare.repository.userRepository.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -328,6 +326,29 @@ public class UserService {
         response.addHeader("Set-Cookie", refreshCookie.toString());
 
         return authMapper.toUserResponseDto(user);
+    }
+
+    public User resentOTP(ResendOTPDto resendOTPDto) {
+        User user = userRepository.findByEmail(resendOTPDto.email())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        if (Boolean.TRUE.equals(user.getIsAccountVerified())) {
+            throw  new BadRequestException("User is already verified");
+        }
+        if(Boolean.TRUE.equals(user.getIsAccountBlocked())) {
+            throw new BadRequestException("User is already blocked. OTP can't be sent to blocked accounts");
+        }
+        if (user.getFailedLoginAttempts() != null && user.getFailedLoginAttempts() >= 5) {
+            throw new BadRequestException(
+                    "You've reached the maximum attempts to request an OTP for this account. Please try again later"
+            );
+        }
+        String otp = generate2FACode(user);
+        user.setTwoFactorCode(otp);
+        user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+        send2FACodeEmail(user.getEmail(), otp);
+
+        return user;
     }
 
     public void logoutUser(HttpServletResponse response) {

@@ -101,7 +101,8 @@ public class SecurityConfig {
                                 apiBasePath + "/auth/login",
                                 apiBasePath + "/auth/logout",
                                 apiBasePath + "/auth/verify-otp",
-                                apiBasePath + "/auth/admin-login"
+                                apiBasePath + "/auth/admin-login",
+                                apiBasePath + "/auth/resend-otp"
                         ).permitAll()
                         .requestMatchers(
                                 apiBasePath + "/auth/all-users",

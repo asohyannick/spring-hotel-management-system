@@ -309,6 +309,24 @@ public class AuthController {
         );
     }
 
+    @Operation(
+            summary = "Resend OTP",
+            description = "Resends a verification OTP to the user email if the account is not verified and not blocked."
+    )
+    @PostMapping("/resend-otp")
+    public ResponseEntity<CustomResponseMessage<String>> resendOtp(
+            @Valid @RequestBody ResendOTPDto dto
+    ) {
+        userService.resentOTP(dto);
+        return ResponseEntity.ok(
+                new CustomResponseMessage<>(
+                        "OTP resent successfully",
+                        HttpStatus.OK.value(),
+                        "OTP has been sent to the registered email"
+                )
+        );
+    }
+
 }
 
 
