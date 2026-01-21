@@ -1,7 +1,10 @@
 package com.hotelCare.hostelCare.controller.auth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.hotelCare.hostelCare.config.JWTConfig.JWTTokenGenerationLogic;
 import com.hotelCare.hostelCare.config.customResponseMessge.CustomResponseMessage;
 import com.hotelCare.hostelCare.dto.user.*;
+import com.hotelCare.hostelCare.entity.user.User;
+import com.hotelCare.hostelCare.mappers.authMapper.AuthMapper;
 import com.hotelCare.hostelCare.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,9 +31,9 @@ import java.util.UUID;
 @Tag(name = "Authentication & User Management Endpoints", description = "User and account management endpoints")
 @RequiredArgsConstructor
 public class AuthController {
-
     private final UserService userService;
     private  final JWTTokenGenerationLogic jwtTokenGenerationLogic;
+    private final AuthMapper authMapper;
 
     @Operation(summary = "Register a new user account", description = "Creates a new user account and sends a 2FA OTP to the user's email for verification")
     @PostMapping("/register")
@@ -410,6 +413,24 @@ public class AuthController {
 
         return ResponseEntity.ok(new ResetPasswordResponseDto("Password reset successfully"));
     }
+
+    @PostMapping("/google-login")
+    @Operation(summary = "Login with Google account using Firebase token")
+    public ResponseEntity<CustomResponseMessage<UserResponseDto>> loginWithGoogle(
+            @RequestBody GoogleLoginRequestDTO request
+    ) throws FirebaseAuthException {
+
+        User auth = userService.loginWithGoogle(request.googleToken());
+        UserResponseDto userDto = authMapper.toUserResponseDto(auth);
+        return ResponseEntity.ok(
+                new CustomResponseMessage<>(
+                        "Login with Google successful",
+                        HttpStatus.OK.value(),
+                        userDto
+                )
+        );
+    }
+
 
 }
 

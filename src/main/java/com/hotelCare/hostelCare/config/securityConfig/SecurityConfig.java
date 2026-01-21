@@ -104,7 +104,8 @@ public class SecurityConfig {
                                 apiBasePath + "/auth/admin-login",
                                 apiBasePath + "/auth/resend-otp",
                                 apiBasePath + "/auth/forgot-password",
-                                apiBasePath + "/auth/*/reset-password"
+                                apiBasePath + "/auth/*/reset-password",
+                                apiBasePath + "/auth/google-login"
                         ).permitAll()
                         .requestMatchers(
                                 apiBasePath + "/auth/all-users",
