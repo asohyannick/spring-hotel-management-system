@@ -86,11 +86,9 @@ public class SecurityConfig {
             response.getWriter().write(objectMapper.writeValueAsString(error));
         };
     }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         String apiBasePath = "/api/" + apiVersion;
-
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -107,6 +105,26 @@ public class SecurityConfig {
                                 apiBasePath + "/auth/*/reset-password",
                                 apiBasePath + "/auth/google-login"
                         ).permitAll()
+                        .requestMatchers(
+                                apiBasePath + "/bookings/create-booking",
+                                apiBasePath + "/bookings/all-bookings",
+                                apiBasePath + "/bookings/fetch-booking/*",
+                                apiBasePath + "/bookings/update-booking/*",
+                                apiBasePath + "/bookings/delete-booking/*"
+                        ).hasAnyRole(
+                                UserRole.CUSTOMER.name(),
+                                UserRole.SUPER_ADMIN.name()
+                        )
+                        .requestMatchers(
+                                apiBasePath + "/bookings/approve-booking/*",
+                                apiBasePath + "/bookings/reject-booking/*",
+                                apiBasePath + "/bookings/fetch-approved-bookings",
+                                apiBasePath + "/bookings/fetch-rejected-bookings",
+                                apiBasePath + "/bookings/total-bookings",
+                                apiBasePath + "/bookings/search-bookings"
+                                ).hasRole(
+                                UserRole.SUPER_ADMIN.name()
+                        )
                         .requestMatchers(
                                 apiBasePath + "/auth/all-users",
                                 apiBasePath + "/auth/fetch-user/*",

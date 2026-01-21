@@ -2,6 +2,8 @@ package com.hotelCare.hostelCare.entity.booking;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hotelCare.hostelCare.entity.user.User;
 import com.hotelCare.hostelCare.enums.BookingStatus;
+import com.hotelCare.hostelCare.enums.CancelledBookingStatus;
+import com.hotelCare.hostelCare.enums.PaymentMethodStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -13,64 +15,94 @@ import java.util.UUID;
 @Entity
 @Table(name = "bookings")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Booking {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false)
     private UUID id;
 
-    @JsonIgnore
-    @Column
+    @Column(nullable = false)
     private String name;
 
-    @JsonIgnore
     @Column
     private String imageUrl;
 
-    @JsonIgnore
-    @Column
+    @Column(length = 1000)
     private String description;
 
-    @Column
-    private BigDecimal price;
-
-    @Column
+    @Column(nullable = false)
     private String region;
 
-    @JsonIgnore
-    @Column
+    @Column(nullable = false)
     private String country;
 
-    @JsonIgnore
-    @Column
+    @Column(nullable = false)
     private LocalDateTime checkInDate;
 
-    @JsonIgnore
-    @Column
+    @Column(nullable = false)
     private LocalDateTime checkOutDate;
 
-    @JsonIgnore
-    @Column
+    @Column(nullable = false)
     private int numberOfNights;
 
-    @JsonIgnore
-    @Column
+    @Column(nullable = false)
     private Integer numberOfGuests;
 
-    @JsonIgnore
+    @Column(nullable = false)
+    private Integer numberOfRooms;
+
     @Column
     private Integer maxGuests;
+
+    @Column(nullable = false)
+    private BigDecimal pricePerNight;
+
+    @Column(nullable = false)
+    private BigDecimal subtotal;
+
+    @Column
+    private BigDecimal taxAmount;
+
+    @Column
+    private BigDecimal discountAmount;
+
+    @Column(nullable = false)
+    private BigDecimal totalAmount;
+
+    @Column
+    private String paymentReference;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private PaymentMethodStatus paymentMethod = PaymentMethodStatus.CARD;
+
+    @Column
+    private Boolean isPaid = false;
+
+    @Column
+    private LocalDateTime paymentDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private BookingStatus status = BookingStatus.PENDING;
 
+    @Enumerated(EnumType.STRING)
+    @Column
+    private CancelledBookingStatus isCancelled = CancelledBookingStatus.FALSE;
+
+    @Column
+    private LocalDateTime cancelledAt;
+
+    @Column(length = 500)
+    private String cancellationReason;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @CreationTimestamp

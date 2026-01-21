@@ -22,13 +22,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/${api.version}/auth")
-@Tag(name = "Authentication & User Management Endpoints", description = "User and account management endpoints")
+@Tag(name = "Authentication & User Management", description = "User and account management endpoints")
 @RequiredArgsConstructor
 public class AuthController {
     private final UserService userService;
@@ -430,8 +428,6 @@ public class AuthController {
                 )
         );
     }
-
-
 }
 
 

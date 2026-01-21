@@ -3,28 +3,47 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import java.util.List;
 @Configuration
 public class SwaggerConfig {
     @Bean
-    public OpenAPI customOpenAPI() {
+    public OpenAPI hostelCareOpenAPI() {
         return new OpenAPI()
+                .servers(List.of(
+                        new Server().url("http://localhost:8080").description("Local environment")
+                ))
                 .addTagsItem(new Tag()
-                        .name("Authentication & User Management Endpoints")
-                        .description("All login, signup, verification & token-related endpoints ❤️"))
+                        .name("Authentication & User Management")
+                        .description("Endpoints for registration, login, verification, password reset, and token management."))
+                .addTagsItem(new Tag()
+                        .name("Bookings Management Endpoints")
+                        .description("Endpoints for managing hostels, rooms, tenants, and related operations."))
                 .info(new Info()
-                        .title("HostelCare API Documentation")
+                        .title("HostelCare API")
                         .version("1.0.0")
-                        .description("API documentation for the HostelCare application")
+                        .description("""
+                                Welcome to the HostelCare API documentation.
+
+                                This API provides endpoints for authentication, user management, and hostel operations.
+                                
+                                Designed and developed by Asoh Yannick — Backend Java Developer with a passion for
+                                Spring Boot, Spring Cloud, Spring Security, Spring Data JPA, and Spring AI.
+                                """)
+                        .termsOfService("https://example.com/terms")
+
                         .contact(new Contact()
-                                .name("Aso Yannick")
-                                .email("keepcoding@gmail.com")
+                                .name("Asoh Yannick")
+                                .email("keepcoding200@gmail.com")
                                 .url("https://www.linkedin.com/in/asohyannick/"))
+
                         .license(new License()
-                                .name("Love License ❤️")
+                                .name("MIT License")
                                 .url("https://opensource.org/licenses/MIT"))
                 );
     }
 }
+
