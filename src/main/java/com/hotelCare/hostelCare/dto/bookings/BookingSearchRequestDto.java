@@ -28,8 +28,8 @@ public record BookingSearchRequestDto(
         UUID userId,
         String bookingReference,
 
-        int page,
-        int size,
+        Integer page,
+        Integer size,
         String sortBy,
         String direction
 

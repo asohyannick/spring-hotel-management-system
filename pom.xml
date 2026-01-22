@@ -122,6 +122,16 @@
             <artifactId>rest-api-sdk</artifactId>
             <version>1.14.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>11.20.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>11.20.2</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<plugins>

@@ -1,6 +1,7 @@
 package com.hotelCare.hostelCare.entity.user;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hotelCare.hostelCare.entity.booking.Booking;
 import com.hotelCare.hostelCare.enums.AccountStatus;
 import com.hotelCare.hostelCare.enums.UserRole;
 import jakarta.persistence.*;
@@ -9,6 +10,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 @Entity
 @Table(name = "users")
@@ -94,6 +97,15 @@ public class User {
     @JsonIgnore
     @Column
     private LocalDateTime otpExpiresAt;
+
+    @JsonIgnore
+    @OneToMany(
+            mappedBy = "user",
+            fetch = FetchType.LAZY,
+           cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Booking> bookings = new ArrayList<>();
 
     @JsonIgnore
     @Column(length = 1000)

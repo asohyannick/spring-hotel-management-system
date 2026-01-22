@@ -94,7 +94,7 @@ public class BookingController {
             summary = "Update a booking",
             description = "Updates an existing booking using the provided booking ID and update payload."
     )
-    @PutMapping("/update-booking/{bookingId}")
+    @PatchMapping("/update-booking/{bookingId}")
     public ResponseEntity<CustomResponseMessage<BookingResponseDto>> updateBooking(
             @PathVariable UUID bookingId,
             @Valid @RequestBody BookingUpdateRequestDto bookingUpdateRequestDto
@@ -142,7 +142,7 @@ public class BookingController {
     @PatchMapping("/reject-booking/{bookingId}")
     public ResponseEntity<CustomResponseMessage<BookingResponseDto>> rejectBooking(
             @PathVariable UUID bookingId,
-            @RequestParam String rejectionReason
+            @Valid @RequestBody String rejectionReason
     ) {
         BookingResponseDto rejectedBooking =
                 bookingService.rejectBooking(bookingId, rejectionReason);
@@ -174,9 +174,9 @@ public class BookingController {
                     pagination and sorting.
                     """
     )
-    @PostMapping("/search-bookings")
+    @GetMapping("/search-bookings")
     public ResponseEntity<CustomResponseMessage<Page<BookingResponseDto>>> searchBookings(
-            @Valid @RequestBody BookingSearchRequestDto request
+            @Valid @ModelAttribute BookingSearchRequestDto request
     ) {
         Page<BookingResponseDto> bookings = bookingService.searchBookings(request);
 

@@ -103,7 +103,8 @@ public class SecurityConfig {
                                 apiBasePath + "/auth/resend-otp",
                                 apiBasePath + "/auth/forgot-password",
                                 apiBasePath + "/auth/*/reset-password",
-                                apiBasePath + "/auth/google-login"
+                                apiBasePath + "/auth/google-login",
+                                apiBasePath + "/bookings/search-bookings"
                         ).permitAll()
                         .requestMatchers(
                                 apiBasePath + "/bookings/create-booking",
@@ -120,8 +121,7 @@ public class SecurityConfig {
                                 apiBasePath + "/bookings/reject-booking/*",
                                 apiBasePath + "/bookings/fetch-approved-bookings",
                                 apiBasePath + "/bookings/fetch-rejected-bookings",
-                                apiBasePath + "/bookings/total-bookings",
-                                apiBasePath + "/bookings/search-bookings"
+                                apiBasePath + "/bookings/total-bookings"
                                 ).hasRole(
                                 UserRole.SUPER_ADMIN.name()
                         )

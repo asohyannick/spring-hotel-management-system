@@ -1,24 +1,20 @@
 server:
-    servlet:
-      encoding:
-        charset: UTF-8
-        enabled: true
-        force: true
-        port: ${API_PORT}
+  port: ${API_PORT}
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 spring:
   application:
     name: ${APP_NAME}
 
+  jackson:
+    default-property-inclusion: non_null
+
   config:
     import: optional:file:.env.properties
-
-  mvc:
-    throw-exception-if-no-handler-found: true
-
-  web:
-    resources:
-      add-mappings: false
 
   datasource:
     url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
@@ -29,7 +25,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+    ddl-auto: update
     show-sql: true
 
   flyway:

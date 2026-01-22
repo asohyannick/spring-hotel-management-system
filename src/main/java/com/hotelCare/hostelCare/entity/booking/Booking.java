@@ -100,17 +100,17 @@ public class Booking {
     @Column(length = 500)
     private String cancellationReason;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
 
-    @CreationTimestamp
-    @Column(updatable = false, nullable = false)
-    private Instant createdAt;
-
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant updatedAt;
+
+    @CreationTimestamp
+    @Column(nullable = false)
+    private Instant createdAt;
 }
 

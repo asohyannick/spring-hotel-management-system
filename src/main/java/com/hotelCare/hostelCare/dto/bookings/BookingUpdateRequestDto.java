@@ -10,5 +10,4 @@ public record BookingUpdateRequestDto(
         BigDecimal pricePerNight,
         BookingStatus status,
         String cancellationReason
-
 ) {}

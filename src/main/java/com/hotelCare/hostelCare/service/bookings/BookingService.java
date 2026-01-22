@@ -4,12 +4,14 @@ import com.hotelCare.hostelCare.dto.bookings.BookingResponseDto;
 import com.hotelCare.hostelCare.dto.bookings.BookingSearchRequestDto;
 import com.hotelCare.hostelCare.dto.bookings.BookingUpdateRequestDto;
 import com.hotelCare.hostelCare.entity.booking.Booking;
+import com.hotelCare.hostelCare.entity.user.User;
 import com.hotelCare.hostelCare.enums.BookingStatus;
 import com.hotelCare.hostelCare.enums.CancelledBookingStatus;
 import com.hotelCare.hostelCare.exception.BadRequestException;
 import com.hotelCare.hostelCare.exception.NotFoundException;
 import com.hotelCare.hostelCare.mappers.bookingMapper.BookingMapper;
 import com.hotelCare.hostelCare.repository.bookingRepository.BookingRepository;
+import com.hotelCare.hostelCare.repository.userRepository.UserRepository;
 import com.hotelCare.hostelCare.utils.BookingSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,14 +31,25 @@ import java.util.UUID;
 public class BookingService {
     private final BookingRepository bookingRepository;
     private  final BookingMapper bookingMapper;
+    private final UserRepository userRepository;
 
     public BookingResponseDto createBooking(BookingRequestDto bookingRequestDto) {
         Booking booking = bookingMapper.toEntity(bookingRequestDto);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new BadRequestException("Unauthenticated: user must login before creating a booking");
+        }
+
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
+        booking.setUser(user);
         booking.setStatus(BookingStatus.PENDING);
         booking.setIsPaid(false);
         booking.setIsCancelled(CancelledBookingStatus.FALSE);
-        Booking  savedBooking = bookingRepository.save(booking);
-        return  bookingMapper.toResponseDto(savedBooking);
+
+        Booking savedBooking = bookingRepository.saveAndFlush(booking);
+        return bookingMapper.toResponseDto(savedBooking);
     }
 
     public  List<BookingResponseDto> fetchAllApprovedBookings() {
@@ -117,19 +132,18 @@ public class BookingService {
         return bookingRepository.count();
     }
 
-    public Page<BookingResponseDto> searchBookings(
-            BookingSearchRequestDto request
-    ) {
+    public Page<BookingResponseDto> searchBookings(BookingSearchRequestDto request) {
 
-        Sort sort = request.direction().equalsIgnoreCase("DESC")
-                ? Sort.by(request.sortBy()).descending()
-                : Sort.by(request.sortBy()).ascending();
+        int page = request.page() == null ? 0 : request.page();
+        int size = request.size() == null ? 10 : request.size();
+        String sortBy = (request.sortBy() == null || request.sortBy().isBlank()) ? "createdAt" : request.sortBy();
+        String direction = (request.direction() == null || request.direction().isBlank()) ? "DESC" : request.direction();
 
-        Pageable pageable = PageRequest.of(
-                request.page(),
-                request.size(),
-                sort
-        );
+        Sort sort = direction.equalsIgnoreCase("DESC")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<Booking> bookings = bookingRepository.findAll(
                 BookingSpecification.search(request),
@@ -138,6 +152,5 @@ public class BookingService {
 
         return bookings.map(bookingMapper::toResponseDto);
     }
-
 
 }
