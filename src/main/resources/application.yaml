@@ -1,5 +1,5 @@
 server:
-  port: ${API_PORT}
+  port: ${API_PORT:8080}
   servlet:
     encoding:
       charset: UTF-8
