@@ -25,8 +25,9 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-    ddl-auto: update
+      ddl-auto: update
     show-sql: true
+
 
   flyway:
     enabled: true
@@ -76,4 +77,9 @@ firebase:
   token-uri: ${FIREBASE_TOKEN_URI}
   auth-provider-x509-cert-url: ${FIREBASE_AUTH_PROVIDER_X509_CERT_URL}
   client-x509-cert-url: ${FIREBASE_CLIENT_X509_CERT_URL}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
 

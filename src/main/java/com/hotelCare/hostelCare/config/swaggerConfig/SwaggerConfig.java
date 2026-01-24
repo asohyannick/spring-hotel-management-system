@@ -22,11 +22,15 @@ public class SwaggerConfig {
                 .addTagsItem(new Tag()
                         .name("Bookings Management Endpoints")
                         .description("Endpoints for managing hostels, rooms, tenants, and related operations."))
+                .addTagsItem(new Tag()
+                        .name("Customer Profile Management Endpoints")
+                        .description("he section is responsible to managed the endpoints belong to customer profile.")
+                )
                 .info(new Info()
-                        .title("HostelCare API")
+                        .title("HostelCare REST API Documentation")
                         .version("1.0.0")
                         .description("""
-                                Welcome to the HostelCare API documentation.
+                                Welcome to the HostelCare REST API documentation.
 
                                 This API provides endpoints for authentication, user management, and hostel operations.
                                 

@@ -133,6 +133,26 @@ public class SecurityConfig {
                                 apiBasePath + "/auth/unblock-user/*",
                                 apiBasePath + "/auth/count-users"
                         ).hasAnyRole(UserRole.SUPER_ADMIN.name(), UserRole.ADMIN.name())
+                        .requestMatchers(
+                                apiBasePath + "/profile/create-profile/*",
+                                apiBasePath + "/profile/fetch-profile/*",
+                                apiBasePath + "/profile/update-profile/*"
+
+                        ).hasAnyRole(
+                                UserRole.CUSTOMER.name(),
+                                UserRole.SUPER_ADMIN.name()
+                        )
+
+                        .requestMatchers(
+                                apiBasePath + "/profile/fetch-profiles",
+                                apiBasePath + "/profile/total-profiles",
+                                apiBasePath + "/profile/fetch-profile-byUserId/*",
+                                apiBasePath + "/profile/delete-profile/*",
+                                apiBasePath + "/profile/total-profiles"
+
+                        )
+                        .hasRole(UserRole.SUPER_ADMIN.name())
+
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().denyAll()
                 )

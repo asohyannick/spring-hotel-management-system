@@ -2,6 +2,7 @@ package com.hotelCare.hostelCare.entity.user;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hotelCare.hostelCare.entity.booking.Booking;
+import com.hotelCare.hostelCare.entity.profile.Profile;
 import com.hotelCare.hostelCare.enums.AccountStatus;
 import com.hotelCare.hostelCare.enums.UserRole;
 import jakarta.persistence.*;
@@ -106,6 +107,14 @@ public class User {
             orphanRemoval = true
     )
     private List<Booking> bookings = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToOne(
+            mappedBy = "user",
+            cascade =  CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Profile profile;
 
     @JsonIgnore
     @Column(length = 1000)
