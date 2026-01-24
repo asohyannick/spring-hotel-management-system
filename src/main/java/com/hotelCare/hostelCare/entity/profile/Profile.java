@@ -21,6 +21,7 @@ public class Profile {
 
     @Id
     @Column(nullable = false, updatable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
 
     @JsonIgnore

@@ -153,6 +153,18 @@ public class SecurityConfig {
                         )
                         .hasRole(UserRole.SUPER_ADMIN.name())
 
+                        .requestMatchers(
+                               apiBasePath +  "/employee/add-employee",
+                                apiBasePath + "/employee/fetch-employees",
+                                apiBasePath + "/employee/fetch-employee/*",
+                                apiBasePath + "/employee/update-employee/*",
+                                apiBasePath + "/employee/delete-employee/*",
+                                apiBasePath + "/employee/total-employees",
+                                apiBasePath + "/employee/search-employee"
+                        ).hasRole(
+                                UserRole.SUPER_ADMIN.name()
+                        )
+
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().denyAll()
                 )
