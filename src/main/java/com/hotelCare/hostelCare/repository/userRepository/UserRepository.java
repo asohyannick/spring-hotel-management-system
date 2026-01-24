@@ -8,9 +8,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
-
     Optional<User> findByEmail(String email);
+
     Optional<User> findByTwoFactorCode(String twoFactorCode);
+
     boolean existsByEmail(String email);
     @Query("""
         SELECT u FROM User u
@@ -27,5 +28,4 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             @Param("blocked") Boolean blocked,
             @Param("email") String email
     );
-    Optional<User> findByMagicLinkToken(String token);
 }

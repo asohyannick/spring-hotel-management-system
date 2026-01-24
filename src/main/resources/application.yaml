@@ -83,3 +83,5 @@ cloudinary:
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
 
+stripe:
+  secret-key: ${STRIPE_API_KEY}

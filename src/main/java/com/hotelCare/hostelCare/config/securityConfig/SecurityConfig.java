@@ -165,6 +165,25 @@ public class SecurityConfig {
                                 UserRole.SUPER_ADMIN.name()
                         )
 
+                        .requestMatchers(
+                                apiBasePath + "/payment/create-payment-intent",
+                                apiBasePath + "/payment/all-payments",
+                                apiBasePath + "/payment/fetch-payment/*",
+                                apiBasePath + "/payment/cancel-payment/*",
+                                apiBasePath + "/payment/refund-payment/*",
+                                apiBasePath + "/payment/total-payments",
+                                apiBasePath + "/payment/payment-reference/*"
+                        ).hasAnyRole(
+                                UserRole.CUSTOMER.name(),
+                                UserRole.SUPER_ADMIN.name()
+                        )
+                        .requestMatchers(
+                                apiBasePath + "/payment/update-payment-status/*",
+                                apiBasePath + "/payment/fetch-payment-by-bookingId/*",
+                                apiBasePath + "/payment/fetch-payment-by-userId/*"
+                        ).hasRole(
+                                UserRole.SUPER_ADMIN.name()
+                        )
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().denyAll()
                 )
