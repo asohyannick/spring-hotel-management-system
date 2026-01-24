@@ -94,6 +94,9 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasRole(UserRole.SUPER_ADMIN.name())
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(
                                 apiBasePath + "/auth/register",
                                 apiBasePath + "/auth/login",
@@ -102,7 +105,7 @@ public class SecurityConfig {
                                 apiBasePath + "/auth/admin-login",
                                 apiBasePath + "/auth/resend-otp",
                                 apiBasePath + "/auth/forgot-password",
-                                apiBasePath + "/auth/*/reset-password",
+                                apiBasePath + "/auth/reset-password/*",
                                 apiBasePath + "/auth/google-login",
                                 apiBasePath + "/bookings/search-bookings"
                         ).permitAll()
@@ -184,7 +187,25 @@ public class SecurityConfig {
                         ).hasRole(
                                 UserRole.SUPER_ADMIN.name()
                         )
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(
+                                apiBasePath + "/review/create-review",
+                                apiBasePath + "/review/all-reviews",
+                                apiBasePath + "/review/fetch-review/*",
+                                apiBasePath + "/review/update-review/*",
+                                apiBasePath + "/review/delete-review/*",
+                                apiBasePath + "/review/fetch-approved-reviews",
+                                apiBasePath + "/review/fetch-rejected-reviews"
+                        ).hasAnyRole(
+                                UserRole.CUSTOMER.name(),
+                                UserRole.SUPER_ADMIN.name()
+                        )
+                        .requestMatchers(
+                                apiBasePath + "/review/approve-review/*",
+                                apiBasePath + "/review/reject-review/*",
+                                apiBasePath + "/review/total-reviews"
+                        ).hasRole(
+                                UserRole.SUPER_ADMIN.name()
+                        )
                         .anyRequest().denyAll()
                 )
                 .exceptionHandling(ex -> ex

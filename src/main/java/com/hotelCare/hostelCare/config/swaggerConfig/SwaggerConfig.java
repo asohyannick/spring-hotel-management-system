@@ -33,8 +33,12 @@ public class SwaggerConfig {
                 .addTagsItem(new Tag()
                         .name("Payment Integration Management Endpoints")
                 )
+                .addTagsItem(new Tag()
+                        .name("Reviews Management Endpoints")
+                        .description("Review management endpoints (create, moderation, fetch, update, delete")
+                )
                 .info(new Info()
-                        .title("HostelCare Backend API Documentation")
+                        .title("HostelCare Backend API Documentation — Designed & Developed by Asoh Yannick, A Backend Java Engineer specializing in Spring Boot and the Spring Ecosystem")
                         .version("1.0.0")
                         .description("""
                                 Welcome to the HostelCare REST API documentation.

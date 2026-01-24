@@ -3,7 +3,6 @@ import com.hotelCare.hostelCare.config.customResponseMessge.CustomResponseMessag
 import com.hotelCare.hostelCare.dto.payment.PaymentRequestDto;
 import com.hotelCare.hostelCare.dto.payment.PaymentResponseDto;
 import com.hotelCare.hostelCare.dto.payment.UpdatePaymentStatusRequest;
-import com.hotelCare.hostelCare.enums.PaymentStatus;
 import com.hotelCare.hostelCare.service.payment.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

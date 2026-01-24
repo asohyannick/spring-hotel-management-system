@@ -26,7 +26,8 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
+    open-in-view: false
 
 
   flyway:
@@ -85,3 +86,24 @@ cloudinary:
 
 stripe:
   secret-key: ${STRIPE_API_KEY}
+
+swagger:
+    server:
+      local: http://localhost:8080
+      prod: https://api.hostelcare.com
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,metrics,prometheus,loggers
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+  info:
+    env:
+      enabled: true
+

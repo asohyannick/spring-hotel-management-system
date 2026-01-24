@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.UUID;
 @RestController
 @RequestMapping("/api/${api.version}/auth")
-@Tag(name = "Authentication & User Management", description = "User and account management endpoints")
+@Tag(name = "Authentication & User Management Endpoints", description = "User and account management endpoints")
 @RequiredArgsConstructor
 public class AuthController {
     private final UserService userService;
@@ -394,7 +394,7 @@ public class AuthController {
                     content = @Content(schema = @Schema())
             )
     })
-    @PostMapping("/{userId}/reset-password")
+    @PostMapping("/reset-password/{userId}")
     public ResponseEntity<ResetPasswordResponseDto> resetPassword(
             @Parameter(description = "User ID", required = true, example = "b3b1a9d8-7b6a-4f86-a6d0-3d3f7c3c1b6e")
             @PathVariable UUID userId,
