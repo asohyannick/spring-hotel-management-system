@@ -99,14 +99,14 @@ public class AuthController {
 
         Cookie accessCookie = new Cookie("accessToken", result.accessToken());
         accessCookie.setHttpOnly(true);
-        accessCookie.setSecure(false); // true in prod
+        accessCookie.setSecure(true);
         accessCookie.setPath("/");
         accessCookie.setMaxAge(jwtTokenGenerationLogic.getAccessTokenExpirationSeconds());
         response.addCookie(accessCookie);
 
         Cookie refreshCookie = new Cookie("refreshToken", result.refreshToken());
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(false);
+        refreshCookie.setSecure(true);
         refreshCookie.setPath("/");
         response.addCookie(refreshCookie);
 

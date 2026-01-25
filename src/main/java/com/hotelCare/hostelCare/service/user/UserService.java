@@ -18,6 +18,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -29,9 +30,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -47,20 +48,6 @@ public class UserService {
 
     @Value("${FIREBASE_PROJECT_ID}")
     private String firebaseProjectId;
-
-    public UserService(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            JavaMailSender javaMailSender,
-            JWTTokenGenerationLogic jwtTokenGenerationLogic,
-            AuthMapper authMapper
-            ) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.javaMailSender = javaMailSender;
-        this.jwtTokenGenerationLogic = jwtTokenGenerationLogic;
-        this.authMapper = authMapper;
-    }
 
     public String generate2FACode(User savedUser) {
          String otp = String.valueOf((int)(Math.random() * 900000) + 100000);
@@ -203,8 +190,6 @@ public class UserService {
         userRepository.save(user);
     }
 
-
-
     public UserResponseDto createAccount(AuthRequestDto authRequestDto, HttpServletResponse response) {
 
         if (userRepository.existsByEmail(authRequestDto.email().trim().toLowerCase())) {
@@ -224,7 +209,6 @@ public class UserService {
 
         return authMapper.toUserResponseDto(savedUser);
     }
-
 
     public UserResponseDto login(LoginRequestDto loginRequestDto, HttpServletResponse response) {
 
