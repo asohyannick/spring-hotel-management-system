@@ -9,6 +9,14 @@ server:
 spring:
   application:
     name: ${APP_NAME}
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: mistral:latest
+          temperature: 0.4
+          top-p: 0.9
 
   jackson:
     default-property-inclusion: non_null
@@ -106,4 +114,5 @@ management:
   info:
     env:
       enabled: true
+
 

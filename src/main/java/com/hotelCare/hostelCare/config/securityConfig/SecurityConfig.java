@@ -4,6 +4,7 @@ import com.hotelCare.hostelCare.config.JWTConfig.JWTAuthenticationFilter;
 import com.hotelCare.hostelCare.enums.UserRole;
 import com.hotelCare.hostelCare.exception.ExceptionResponse;
 import jakarta.servlet.DispatcherType;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,15 +23,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JWTAuthenticationFilter jwtAuthenticationFilter;
     private final ObjectMapper objectMapper;
-
-    public SecurityConfig(JWTAuthenticationFilter jwtAuthenticationFilter, ObjectMapper objectMapper) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.objectMapper = objectMapper;
-    }
 
     @Value("${api.version}")
     private String apiVersion;
@@ -114,7 +111,8 @@ public class SecurityConfig {
                                 apiBasePath + "/bookings/all-bookings",
                                 apiBasePath + "/bookings/fetch-booking/*",
                                 apiBasePath + "/bookings/update-booking/*",
-                                apiBasePath + "/bookings/delete-booking/*"
+                                apiBasePath + "/bookings/delete-booking/*",
+                                apiBasePath + "/bookings/recommend/*"
                         ).hasAnyRole(
                                 UserRole.CUSTOMER.name(),
                                 UserRole.SUPER_ADMIN.name()
@@ -145,7 +143,6 @@ public class SecurityConfig {
                                 UserRole.CUSTOMER.name(),
                                 UserRole.SUPER_ADMIN.name()
                         )
-
                         .requestMatchers(
                                 apiBasePath + "/profile/fetch-profiles",
                                 apiBasePath + "/profile/total-profiles",
@@ -155,7 +152,6 @@ public class SecurityConfig {
 
                         )
                         .hasRole(UserRole.SUPER_ADMIN.name())
-
                         .requestMatchers(
                                apiBasePath +  "/employee/add-employee",
                                 apiBasePath + "/employee/fetch-employees",

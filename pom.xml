@@ -150,7 +150,12 @@
             <version>1.16.2</version>
             <scope>compile</scope>
         </dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+    </dependencies>
 	<build>
 		<plugins>
 			<plugin>

@@ -1,12 +1,14 @@
 package com.hotelCare.hostelCare.controller.booking;
 import com.hotelCare.hostelCare.config.customResponseMessge.CustomResponseMessage;
-import com.hotelCare.hostelCare.dto.bookings.BookingRequestDto;
-import com.hotelCare.hostelCare.dto.bookings.BookingResponseDto;
-import com.hotelCare.hostelCare.dto.bookings.BookingSearchRequestDto;
-import com.hotelCare.hostelCare.dto.bookings.BookingUpdateRequestDto;
+import com.hotelCare.hostelCare.dto.bookings.*;
 import com.hotelCare.hostelCare.mappers.bookingMapper.BookingMapper;
 import com.hotelCare.hostelCare.service.bookings.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,6 @@ import java.util.UUID;
 public class BookingController {
 
     private final BookingService bookingService;
-    private final BookingMapper bookingMapper;
 
     @Operation(
             summary = "Create a new booking",
@@ -184,6 +185,36 @@ public class BookingController {
         return ResponseEntity.ok(
                 new CustomResponseMessage<>(message, HttpStatus.OK.value(), bookings)
         );
+    }
+
+    @Operation(
+            summary = "Recommend bookings similar to a given booking",
+            description = """
+                Returns recommended bookings based on similarity to the provided bookingId
+                (region/country/guests/price) and includes an AI-generated explanation (Ollama).
+                """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Booking recommendations retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = BookingRecommendationResponseDto.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "Booking not found"),
+            @ApiResponse(responseCode = "400", description = "Bad request")
+    })
+    @GetMapping("/recommend/{bookingId}")
+    public ResponseEntity<CustomResponseMessage<BookingRecommendationResponseDto>> recommendBookings(
+            @Parameter(description = "Base booking ID to generate recommendations from", required = true)
+            @PathVariable UUID bookingId,
+
+            @Parameter(description = "Maximum number of recommendations to return (default: 5)")
+            @RequestParam(defaultValue = "5") int limit
+    ) {
+        BookingRecommendationResponseDto result = bookingService.recommendBookings(bookingId, limit);
+
+        String message = "Booking recommendations generated successfully.";
+        return ResponseEntity.ok(new CustomResponseMessage<>(message, HttpStatus.OK.value(), result));
     }
 
 }

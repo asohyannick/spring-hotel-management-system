@@ -1,8 +1,5 @@
 package com.hotelCare.hostelCare.service.bookings;
-import com.hotelCare.hostelCare.dto.bookings.BookingRequestDto;
-import com.hotelCare.hostelCare.dto.bookings.BookingResponseDto;
-import com.hotelCare.hostelCare.dto.bookings.BookingSearchRequestDto;
-import com.hotelCare.hostelCare.dto.bookings.BookingUpdateRequestDto;
+import com.hotelCare.hostelCare.dto.bookings.*;
 import com.hotelCare.hostelCare.entity.booking.Booking;
 import com.hotelCare.hostelCare.entity.user.User;
 import com.hotelCare.hostelCare.enums.BookingStatus;
@@ -15,6 +12,7 @@ import com.hotelCare.hostelCare.repository.userRepository.UserRepository;
 import com.hotelCare.hostelCare.utils.BookingSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,9 +20,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.Comparator;
+import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -32,6 +34,77 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private  final BookingMapper bookingMapper;
     private final UserRepository userRepository;
+    private final ChatClient chatClient;
+
+    private int similarityScore(Booking base, Booking other) {
+        int score = 0;
+
+        if (safeEqualsIgnoreCase(base.getRegion(), other.getRegion())) score += 40;
+        if (safeEqualsIgnoreCase(base.getCountry(), other.getCountry())) score += 30;
+
+        if (base.getNumberOfGuests() != null && other.getNumberOfGuests() != null) {
+            int diff = Math.abs(base.getNumberOfGuests() - other.getNumberOfGuests());
+            score += Math.max(0, 20 - diff * 4);
+        }
+
+        if (base.getPricePerNight() != null && other.getPricePerNight() != null) {
+            double diff = base.getPricePerNight().subtract(other.getPricePerNight()).abs().doubleValue();
+            score += Math.max(0, 20 - (int) (diff / 10));
+        }
+
+        score += Math.max(0, 10 - Math.abs(base.getNumberOfNights() - other.getNumberOfNights()));
+
+        return score;
+    }
+
+    private boolean safeEqualsIgnoreCase(String a, String b) {
+        if (a == null || b == null) return false;
+        return a.trim().equalsIgnoreCase(b.trim());
+    }
+
+
+    private String generateRecommendationExplanation(Booking base, List<Booking> recommendations) {
+        try {
+
+            String recSummary = recommendations.stream()
+                    .map(b -> "- " + b.getName() + " | " + b.getRegion() + ", " + b.getCountry()
+                            + " | guests=" + b.getNumberOfGuests()
+                            + " | pricePerNight=" + b.getPricePerNight())
+                    .reduce("", (acc, line) -> acc + line + "\n");
+
+            String template = """
+                    You are a hotel booking recommendation assistant.
+                    
+                    Base booking:
+                    - name: {name}
+                    - region: {region}
+                    - country: {country}
+                    - guests: {guests}
+                    - nights: {nights}
+                    - pricePerNight: {price}
+                    
+                    Candidate recommendations:
+                    {recommendations}
+                    
+                    Task:
+                    1) In 2-4 sentences, explain WHY these recommendations fit the base booking.
+                    2) Keep it short and user-friendly.
+                    """;
+
+            Prompt prompt = new PromptTemplate(template).create(Map.of(
+                    "name", base.getName(),
+                    "region", base.getRegion(),
+                    "country", base.getCountry(),
+                    "guests", String.valueOf(base.getNumberOfGuests()),
+                    "nights", String.valueOf(base.getNumberOfNights()),
+                    "price", String.valueOf(base.getPricePerNight()),
+                    "recommendations", recSummary.isBlank() ? "- (none)" : recSummary
+            ));
+            return chatClient.prompt(prompt).call().content();
+        } catch (Exception e) {
+            return "Recommendations are based on similar location, guests, nights, and price. (AI explanation unavailable right now.)";
+        }
+    }
 
     public BookingResponseDto createBooking(BookingRequestDto bookingRequestDto) {
         Booking booking = bookingMapper.toEntity(bookingRequestDto);
@@ -153,4 +226,31 @@ public class BookingService {
         return bookings.map(bookingMapper::toResponseDto);
     }
 
+    public BookingRecommendationResponseDto recommendBookings(UUID bookingId, int limit) {
+
+        Booking base = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Booking not found with ID: " + bookingId));
+
+        List<Booking> candidates = bookingRepository.findByStatus(BookingStatus.APPROVED)
+                .stream()
+                .filter(b -> !b.getId().equals(base.getId()))
+                .toList();
+
+        List<Booking> top = candidates.stream()
+                .sorted(Comparator.<Booking>comparingInt(b -> similarityScore(base, b)).reversed())
+                .limit(Math.max(1, limit))
+                .toList();
+
+        List<BookingResponseDto> topDtos = top.stream()
+                .map(bookingMapper::toResponseDto)
+                .toList();
+
+        String aiExplanation = generateRecommendationExplanation(base, top);
+
+        return new BookingRecommendationResponseDto(
+                bookingMapper.toResponseDto(base),
+                topDtos,
+                aiExplanation
+        );
+    }
 }
