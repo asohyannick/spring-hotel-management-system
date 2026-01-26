@@ -49,6 +49,17 @@ public class UserService {
     @Value("${FIREBASE_PROJECT_ID}")
     private String firebaseProjectId;
 
+    private User createUserFromFirebase(FirebaseToken token) {
+        User newUser = new User();
+        newUser.setEmail(token.getEmail().trim().toLowerCase());
+        newUser.setFirstName(token.getName() != null ? token.getName().trim().split(" ")[0] : "CUSTOMER");
+        newUser.setLastName(token.getName() != null && token.getName().trim().contains(" ") ? token.getName().split(" ")[1] : "CUSTOMER");
+        newUser.setIsAccountVerified(token.isEmailVerified());
+        newUser.setRole(UserRole.valueOf("CUSTOMER"));
+        newUser.setIsAccountBlocked(false);
+        return userRepository.save(newUser);
+    }
+
     public String generate2FACode(User savedUser) {
          String otp = String.valueOf((int)(Math.random() * 900000) + 100000);
          savedUser.setTwoFactorExpiryTime(LocalDateTime.now().plusHours(5));
@@ -162,7 +173,7 @@ public class UserService {
             javaMailSender.send(message);
 
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send 2FA email", e);
+            throw new BadRequestException("Failed to send 2FA email", e);
         }
     }
 
@@ -175,18 +186,6 @@ public class UserService {
         user.setIsAccountBlocked(false);
         user.setIsAccountConfirmed(true);
         user.setStatus(AccountStatus.VERIFIED);
-        userRepository.save(user);
-    }
-
-    private void handleFailedLogin(User user) {
-        int attempts = user.getFailedLoginAttempts() + 1;
-        user.setFailedLoginAttempts(attempts);
-
-        if (attempts >= 5) {
-            user.setIsAccountBlocked(true);
-            user.setStatus(AccountStatus.SUSPENDED);
-        }
-
         userRepository.save(user);
     }
 
@@ -296,7 +295,6 @@ public class UserService {
 
         activateUser(user);
 
-        // 🔑 Generate JWT tokens after verification
         String accessToken = jwtTokenGenerationLogic.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtTokenGenerationLogic.generateRefreshToken(user.getEmail());
         user.setAccessToken(accessToken);
@@ -327,7 +325,7 @@ public class UserService {
         return authMapper.toUserResponseDto(user);
     }
 
-    public User resentOTP(ResendOTPDto resendOTPDto) {
+    public void resentOTP(ResendOTPDto resendOTPDto) {
         User user = userRepository.findByEmail(resendOTPDto.email())
                 .orElseThrow(() -> new NotFoundException("User not found"));
         if (Boolean.TRUE.equals(user.getIsAccountVerified())) {
@@ -346,12 +344,9 @@ public class UserService {
         user.setOtpExpiresAt(LocalDateTime.now().plusMinutes(10));
         userRepository.save(user);
         send2FACodeEmail(user.getEmail(), otp);
-
-        return user;
     }
 
     public void logoutUser(HttpServletResponse response) {
-        // Clear cookies
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
                 .httpOnly(true)
                 .secure(true)
@@ -405,7 +400,7 @@ public class UserService {
             throw  new BadRequestException("User account is not blocked");
         }
         user.setIsAccountBlocked(false);
-        User saved = userRepository.save(user);
+        userRepository.save(user);
         return authMapper.toUserResponseDto(user);
     }
 
@@ -488,11 +483,9 @@ public class UserService {
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
-
             helper.setTo(forgotPasswordDto.email());
             helper.setSubject("Password Reset Verification Code");
             helper.setText(html, true);
-
             javaMailSender.send(mimeMessage);
         } catch (MessagingException e) {
             throw new BadRequestException("Failed to send password reset email", e);
@@ -549,7 +542,7 @@ public class UserService {
     public User loginWithGoogle(String googleToken) throws FirebaseAuthException {
         FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(googleToken);
         if (decodedToken == null || decodedToken.getEmail() == null || decodedToken.getEmail().isBlank()) {
-            throw new RuntimeException("Invalid Firebase token");
+            throw new BadRequestException("Invalid Firebase token");
         }
         String email = decodedToken.getEmail().trim().toLowerCase();
         User auth = userRepository.findByEmail(email)
@@ -559,16 +552,5 @@ public class UserService {
         auth.setAccessToken(accessToken);
         auth.setRefreshToken(refreshToken);
         return userRepository.save(auth);
-    }
-
-    private User createUserFromFirebase(FirebaseToken token) {
-        User newUser = new User();
-        newUser.setEmail(token.getEmail().trim().toLowerCase());
-        newUser.setFirstName(token.getName() != null ? token.getName().trim().split(" ")[0] : "CUSTOMER");
-        newUser.setLastName(token.getName() != null && token.getName().trim().contains(" ") ? token.getName().split(" ")[1] : "CUSTOMER");
-        newUser.setIsAccountVerified(token.isEmailVerified());
-        newUser.setRole(UserRole.valueOf("CUSTOMER"));
-        newUser.setIsAccountBlocked(false);
-        return userRepository.save(newUser);
     }
 }

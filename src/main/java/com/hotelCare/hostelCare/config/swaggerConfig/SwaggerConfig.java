@@ -14,7 +14,7 @@ public class SwaggerConfig {
     public OpenAPI hostelCareOpenAPI() {
         return new OpenAPI()
                 .servers(List.of(
-                        new Server().url("http://localhost:8080").description("Local environment")
+                        new Server().url("/")
                 ))
                 .addTagsItem(new Tag()
                         .name("Authentication & User Management Endpoints")

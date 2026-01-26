@@ -42,7 +42,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: false
     open-in-view: false
 
@@ -124,8 +124,15 @@ management:
     env:
       enabled: true
 
-
 http:
     client:
       connect-timeout: 10s
       read-timeout: 120s
+
+
+logging:
+  level:
+    org.springframework.boot.context: DEBUG
+    org.springframework.boot.web.embedded.tomcat: INFO
+    org.springframework.boot.web.servlet.context: INFO
+    org.springframework.context: INFO
