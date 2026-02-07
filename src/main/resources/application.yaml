@@ -42,7 +42,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: false
     open-in-view: false
 
@@ -52,17 +52,11 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+
+elastic:
+  api-key: ${ELASTIC_EMAIL_API_KEY}
+  from-email: ${ELASTIC_EMAIL_FROM_EMAIL}
+  from-name: ${ELASTIC_EMAIL_FROM_NAME}
 
 frontend:
   allowed-domains: ${FRONTEND_DOMAINS}
@@ -128,7 +122,6 @@ http:
     client:
       connect-timeout: 10s
       read-timeout: 120s
-
 
 logging:
   level:

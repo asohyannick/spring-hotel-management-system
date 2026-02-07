@@ -3,19 +3,14 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import java.util.List;
 @Configuration
 public class SwaggerConfig {
     @Bean
     public OpenAPI hostelCareOpenAPI() {
         return new OpenAPI()
-                .servers(List.of(
-                        new Server().url("/")
-                ))
                 .addTagsItem(new Tag()
                         .name("Authentication & User Management Endpoints")
                         .description("Endpoints for registration, login, verification, password reset, and token management."))
